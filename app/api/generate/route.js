@@ -1,36 +1,34 @@
 import clientPromise from "@/lib/mongoDb";
-import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
     const body = await request.json();
+
     if (!body.url || !body.shorturl) {
-      return NextResponse.json({ success: false, message: "Missing fields" }, { status: 400 });
+      return new Response(JSON.stringify({ success: false, message: "URL and short URL are required" }), { status: 400 });
     }
 
     const client = await clientPromise;
     const db = client.db("bitlinks");
     const collection = db.collection("url");
 
-    // Check if the short URL exists
+    // Check if short URL already exists
     const existing = await collection.findOne({ shorturl: body.shorturl });
     if (existing) {
-      return NextResponse.json({ success: false, message: "Short URL already exists" }, { status: 409 });
+      return new Response(JSON.stringify({ success: false, message: "Short URL already exists" }), { status: 400 });
     }
 
-    const result = await collection.insertOne({
+    // Insert new link
+    await collection.insertOne({
       url: body.url,
       shorturl: body.shorturl,
       createdAt: new Date(),
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Short URL created successfully",
-      link: { _id: result.insertedId, url: body.url, shorturl: body.shorturl, createdAt: new Date() }
-    });
+    return new Response(JSON.stringify({ success: true, message: "Short URL created successfully" }), { status: 200 });
+
   } catch (error) {
-    console.error("Generate error:", error);
-    return NextResponse.json({ success: false, message: "Failed to create link" }, { status: 500 });
+    console.error("Failed to create link:", error);
+    return new Response(JSON.stringify({ success: false, message: "Failed to create link" }), { status: 500 });
   }
 }
