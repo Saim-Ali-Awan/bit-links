@@ -58,7 +58,7 @@ export default function Navbar() {
               <LiquidButton size="lg">Try Now</LiquidButton>
             </Link>
 
-            <Link href="/github">
+            <Link href="/https://github.com/Saim-Ali-Awan/bit-links">
               <LiquidButton size="lg" className="flex items-center gap-2">
                 <GitHubIcon />
                 GitHub
@@ -115,7 +115,7 @@ export default function Navbar() {
               </LiquidButton>
             </Link>
 
-            <Link href="/github">
+            <Link href="/https://github.com/Saim-Ali-Awan/bit-links">
               <LiquidButton
                 size="lg"
                 className="w-full flex items-center justify-center gap-2"
