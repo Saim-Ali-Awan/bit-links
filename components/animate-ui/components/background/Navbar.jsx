@@ -15,6 +15,15 @@ const GitHubIcon = () => (
   </svg>
 );
 
+/* -------------------- SEARCH DATA -------------------- */
+const searchableContent = [
+  { title: 'Home', url: '/', description: 'Welcome to Bit-links - URL shortening service' },
+  { title: 'About', url: '/about', description: 'Learn more about our URL shortening service' },
+  { title: 'Shorten', url: '/shorten', description: 'Shorten your long URLs quickly and easily' },
+  { title: 'Contact', url: '/contact', description: 'Get in touch with us' },
+  { title: 'GitHub', url: 'https://github.com/Saim-Ali-Awan/bit-links', description: 'View our source code on GitHub' },
+];
+
 /* -------------------- SEARCH -------------------- */
 const SearchBar = ({ isMobile = false }) => {
   const [open, setOpen] = useState(false);
@@ -22,48 +31,64 @@ const SearchBar = ({ isMobile = false }) => {
   const [results, setResults] = useState([]);
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
+  const resultsRef = useRef(null);
   const router = useRouter();
-
-  const searchableContent = [
-    { title: 'Home', url: '/', description: 'Welcome to Bit-links' },
-    { title: 'About', url: '/about', description: 'Learn more about our URL shortening service' },
-    { title: 'Shorten', url: '/shorten', description: 'Shorten your long URLs quickly' },
-    { title: 'Contact', url: '/contact', description: 'Get in touch with us' },
-    { title: 'GitHub', url: 'https://github.com/Saim-Ali-Awan/bit-links', description: 'View source code' },
-  ];
 
   useEffect(() => {
     const handler = (e) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        close();
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   useEffect(() => {
-    if (!query.trim()) return setResults([]);
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
     const q = query.toLowerCase();
     setResults(
       searchableContent.filter(
-        (i) => i.title.toLowerCase().includes(q) || i.description.toLowerCase().includes(q)
+        (i) =>
+          i.title.toLowerCase().includes(q) ||
+          i.description.toLowerCase().includes(q)
       )
     );
   }, [query]);
 
   useEffect(() => {
     if (open && inputRef.current) {
-      gsap.fromTo(inputRef.current, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.25 });
+      gsap.fromTo(
+        inputRef.current,
+        { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.25 }
+      );
     }
   }, [open]);
 
+  const close = () => {
+    gsap.to(inputRef.current, {
+      opacity: 0,
+      y: -10,
+      duration: 0.2,
+      onComplete: () => {
+        setOpen(false);
+        setQuery('');
+      },
+    });
+  };
+
   const go = (url) => {
-    setOpen(false);
+    close();
     url.startsWith('http') ? window.open(url, '_blank') : router.push(url);
-    setQuery('');
   };
 
   return (
     <div ref={wrapperRef} className="relative">
+      {/* 🔍 BUTTON — ALWAYS VISIBLE */}
       <button
         onClick={() => setOpen(true)}
         className="p-2 rounded-full bg-white/30 hover:bg-white/50 backdrop-blur-sm border border-white/40 transition-all"
@@ -71,12 +96,13 @@ const SearchBar = ({ isMobile = false }) => {
         <Search className="h-5 w-5 text-black" />
       </button>
 
+      {/* 🔎 SEARCH PANEL */}
       {open && (
         <div
           ref={inputRef}
-          className={`${isMobile ? 'fixed inset-x-4 top-20 z-50' : 'absolute right-0 w-96 mt-3 z-50'}`}
+          className={`${isMobile ? 'fixed inset-x-4 top-20' : 'absolute right-0 w-96 mt-3'}`}
         >
-          <div className="relative">
+          <div className="relative md:top-3">
             <input
               autoFocus
               value={query}
@@ -86,14 +112,18 @@ const SearchBar = ({ isMobile = false }) => {
             />
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <button
-              onClick={() => setOpen(false)}
+              onClick={close}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full"
             >
               <X className="h-4 w-4 text-gray-500" />
             </button>
           </div>
+
           {results.length > 0 && (
-            <div className="mt-3 bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
+            <div
+              ref={resultsRef}
+              className="mt-3 bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden"
+            >
               {results.map((r, i) => (
                 <button
                   key={i}
@@ -116,13 +146,14 @@ const SearchBar = ({ isMobile = false }) => {
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const sheetContentRef = useRef(null);
 
   useEffect(() => setOpen(false), [pathname]);
 
   return (
     <>
-      {/* Desktop Navbar */}
-      <div className="sticky top-6 z-50 hidden md:block">
+      {/* DESKTOP */}
+      <div className="sticky top-6 z-30 hidden md:block">
         <div className="mx-auto w-[90%] max-w-6xl rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg px-6 py-3 flex items-center justify-between">
           <Link href="/" className="text-xl font-semibold text-black">
             Bit-links
@@ -149,9 +180,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navbar */}
+      {/* MOBILE */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <div className="sticky top-4 z-50 md:hidden">
+        <div className="sticky top-4 z-30 md:hidden">
           <div className="mx-auto w-[90%] rounded-full bg-white/40 backdrop-blur-xl border border-white/30 shadow-lg px-5 py-3 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold text-black">
               Bit-links
@@ -168,8 +199,12 @@ export default function Navbar() {
           </div>
         </div>
 
-        <SheetContent side="right" className="fixed top-0 right-0 h-screen w-[280px] bg-white p-5 flex flex-col">
-          <div className="flex flex-col h-full">
+        {/* SHEET — SOLID WHITE */}
+        <SheetContent
+          side="right"
+          className="fixed top-0 right-0 h-screen w-[280px] bg-white p-5 flex flex-col"
+        >
+          <div ref={sheetContentRef} className="flex flex-col h-full">
             <Link href="/" className="text-xl font-bold mb-6">Bit-links</Link>
 
             <nav className="flex flex-col gap-4 text-lg font-medium mb-6">
